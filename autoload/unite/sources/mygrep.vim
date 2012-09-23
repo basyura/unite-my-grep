@@ -133,7 +133,7 @@ function! s:source.hooks.on_init(args, context) "{{{
 
   let a:context.source__input = get(a:args, 2, '')
   if a:context.source__input == ''
-    let a:context.source__input = input('Pattern: ')
+    let a:context.source__input = unite#util#input('Pattern: ')
   endif
 
   let a:context.source__directory =

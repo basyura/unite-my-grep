@@ -35,19 +35,19 @@ call unite#util#set_default('g:unite_source_grep_ignore_pattern',
       \'\%(^\|/\)\.\%(hg\|git\|bzr\|svn\)\%($\|/\)\|'.
       \'\%(^\|/\)tags\%(-\a*\)\?$')
 
-" Actions "{{{
+" Actions
 let s:action_grep_file = {
   \   'description': 'grep this files',
   \   'is_quit': 1,
   \   'is_invalidate_cache': 1,
   \   'is_selectable': 1,
   \ }
-function! s:action_grep_file.func(candidates) "{{{
+function! s:action_grep_file.func(candidates)
   call unite#start([
         \ ['mygrep', map(copy(a:candidates),
         \ 'string(substitute(v:val.action__path, "/$", "", "g"))'),
         \ ]], { 'no_quit' : 1 })
-endfunction "}}}
+endfunction
 
 let s:action_grep_directory = {
   \   'description': 'grep this directories',
@@ -55,11 +55,11 @@ let s:action_grep_directory = {
   \   'is_invalidate_cache': 1,
   \   'is_selectable': 1,
   \ }
-function! s:action_grep_directory.func(candidates) "{{{
+function! s:action_grep_directory.func(candidates)
   call unite#start([
         \ ['mygrep', map(copy(a:candidates), 'string(v:val.action__directory)'),
         \ ]], { 'no_quit' : 1 })
-endfunction "}}}
+endfunction
 if executable(g:unite_source_grep_command) && unite#util#has_vimproc()
   call unite#custom_action('file,buffer',
         \ 'mygrep', s:action_grep_file)
@@ -76,10 +76,10 @@ if executable(g:unite_source_grep_command) && unite#util#has_vimproc()
 endif
 " }}}
 
-function! unite#sources#mygrep#define() "{{{
+function! unite#sources#mygrep#define()
   return executable(g:unite_source_grep_command) && unite#util#has_vimproc() ?
         \ s:source : []
-endfunction "}}}
+endfunction
 
 let s:source = {
       \ 'name': 'mygrep',
@@ -90,7 +90,7 @@ let s:source = {
       \ 'ignore_pattern' : g:unite_source_grep_ignore_pattern,
       \ }
 
-function! s:source.hooks.on_init(args, context) "{{{
+function! s:source.hooks.on_init(args, context)
   if type(get(a:args, 0, '')) == type([])
     let a:context.source__target = a:args[0]
     let targets = a:context.source__target
@@ -161,21 +161,21 @@ function! s:source.hooks.on_init(args, context) "{{{
             \ "substitute(v:val, 'ssh://', '', '')")
     endif
   endif
-endfunction"}}}
-function! s:source.hooks.on_syntax(args, context)"{{{
+endfunction
+function! s:source.hooks.on_syntax(args, context)
   syntax case ignore
   execute 'syntax match uniteSource__GrepPattern /:.*\zs'
         \ . substitute(a:context.source__input, '\([/\\]\)', '\\\1', 'g')
         \ . '/ contained containedin=uniteSource__Grep'
   execute 'highlight default link uniteSource__GrepPattern'
         \ g:unite_source_grep_search_word_highlight
-endfunction"}}}
-function! s:source.hooks.on_close(args, context) "{{{
+endfunction
+function! s:source.hooks.on_close(args, context)
   if has_key(a:context, 'source__proc')
     call a:context.source__proc.waitpid()
   endif
-endfunction "}}}
-function! s:source.hooks.on_post_filter(args, context)"{{{
+endfunction
+function! s:source.hooks.on_post_filter(args, context)
   for candidate in a:context.candidates
     let candidate.kind = [((a:context.source__ssh_path != '') ?
           \ 'file/ssh' : 'file'), 'jump_list']
@@ -183,13 +183,13 @@ function! s:source.hooks.on_post_filter(args, context)"{{{
           \ unite#util#path2directory(candidate.action__path)
     let candidate.is_multiline = 1
   endfor
-endfunction"}}}
+endfunction
 
-function! s:source.gather_candidates(args, context) "{{{
+function! s:source.gather_candidates(args, context)
   if empty(a:context.source__target)
         \ || a:context.source__input == ''
     let a:context.is_async = 0
-    call unite#print_source_message('Completed.', s:source.name)
+"    call unite#print_source_message('Completed.', s:source.name)
     return []
   endif
 
@@ -215,12 +215,12 @@ function! s:source.gather_candidates(args, context) "{{{
           \   '\<HOSTNAME\>', hostname, 'g'), '\<PORT\>', port, 'g')
   endif
 
-  call unite#print_source_message('Command-line: ' . cmdline, s:source.name)
+  "call unite#print_source_message('Command-line: ' . cmdline, s:source.name)
   let a:context.source__proc = vimproc#plineopen3(
         \ vimproc#util#iconv(cmdline, &encoding, 'char'), 1)
 
   return []
-endfunction "}}}
+endfunction
 
 function! s:source.async_gather_candidates(args, context) "{{{
   if !has_key(a:context, 'source__proc')
@@ -240,7 +240,7 @@ function! s:source.async_gather_candidates(args, context) "{{{
   let stdout = a:context.source__proc.stdout
   if stdout.eof
     " Disable async.
-    call unite#print_source_message('Completed.', s:source.name)
+    "call unite#print_source_message('Completed.', s:source.name)
     let a:context.is_async = 0
   endif
 
@@ -298,11 +298,11 @@ function! s:source.async_gather_candidates(args, context) "{{{
   endif
 
   return _
-endfunction "}}}
+endfunction
 
-function! s:source.complete(args, context, arglead, cmdline, cursorpos)"{{{
+function! s:source.complete(args, context, arglead, cmdline, cursorpos)
   return ['%', '#', '$buffers'] + unite#sources#file#complete_directory(
         \ a:args, a:context, a:arglead, a:cmdline, a:cursorpos)
-endfunction"}}}
+endfunction
 
 " vim: foldmethod=marker
